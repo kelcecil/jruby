@@ -23,32 +23,49 @@ import org.jruby.truffle.runtime.core.RubyArray;
 public final class ArrayConcatNode extends RubyNode {
 
     @Children protected final RubyNode[] children;
+    @Child protected ArrayAllocationSite arrayAllocationSite;
 
     public ArrayConcatNode(RubyContext context, SourceSection sourceSection, RubyNode[] children) {
         super(context, sourceSection);
         assert children.length > 1;
         this.children = children;
+        arrayAllocationSite = new ArrayAllocationSite.UninitializedArrayAllocationSite(context);
     }
 
     @Override
     public RubyArray execute(VirtualFrame frame) {
         notDesignedForCompilation();
 
-        final RubyArray array = new RubyArray(getContext().getCoreLibrary().getArrayClass());
+        int length = 0;
 
         for (int n = 0; n < children.length; n++) {
             final Object childObject = children[n].execute(frame);
 
             if (childObject instanceof RubyArray) {
-                for (Object value : ((RubyArray) childObject).slowToArray()) {
-                    array.slowPush(value);
-                }
+                final RubyArray childArray = (RubyArray) childObject;
+                length += childArray.getSize();
             } else {
-                array.slowPush(childObject);
+                length++;
             }
         }
 
-        return array;
+        Object store = arrayAllocationSite.start(length);
+        int index = 0;
+
+        for (int n = 0; n < children.length; n++) {
+            final Object childObject = children[n].execute(frame);
+
+            if (childObject instanceof RubyArray) {
+                final RubyArray childArray = (RubyArray) childObject;
+                store = arrayAllocationSite.set(store, index, childArray.getStore(), childArray.getSize());
+                index += childArray.getSize();
+            } else {
+                store = arrayAllocationSite.set(store, index, childObject);
+                index++;
+            }
+        }
+
+        return arrayAllocationSite.finish(store, length);
     }
 
     @ExplodeLoop

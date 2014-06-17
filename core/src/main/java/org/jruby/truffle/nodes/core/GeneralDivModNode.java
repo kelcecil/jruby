@@ -23,6 +23,7 @@ public class GeneralDivModNode extends Node {
 
     @Child protected FixnumOrBignumNode fixnumOrBignumQuotient;
     @Child protected FixnumOrBignumNode fixnumOrBignumRemainder;
+    @Child protected ArrayAllocationSite arrayAllocationSite;
 
     private final BranchProfile bZeroProfile = new BranchProfile();
     private final BranchProfile bMinusOneProfile = new BranchProfile();
@@ -35,6 +36,7 @@ public class GeneralDivModNode extends Node {
         this.context = context;
         fixnumOrBignumQuotient = new FixnumOrBignumNode();
         fixnumOrBignumRemainder = new FixnumOrBignumNode();
+        arrayAllocationSite = new ArrayAllocationSite.UninitializedArrayAllocationSite(context);
     }
 
     public RubyArray execute(int a, int b) {
@@ -107,10 +109,16 @@ public class GeneralDivModNode extends Node {
 
         if (integerDiv instanceof Long && ((long) integerDiv) >= Integer.MIN_VALUE && ((long) integerDiv) <= Integer.MAX_VALUE && mod >= Integer.MIN_VALUE && mod <= Integer.MAX_VALUE) {
             useFixnumPairProfile.enter();
-            return new RubyArray(context.getCoreLibrary().getArrayClass(), new int[]{(int) (long) integerDiv, (int) mod}, 2);
+            Object store = arrayAllocationSite.start(2);
+            store = arrayAllocationSite.set(store, 0, (int) (long) integerDiv);
+            store = arrayAllocationSite.set(store, 1, (int) mod);
+            return arrayAllocationSite.finish(store, 2);
         } else {
             useObjectPairProfile.enter();
-            return new RubyArray(context.getCoreLibrary().getArrayClass(), new Object[]{integerDiv, mod}, 2);
+            Object store = arrayAllocationSite.start(2);
+            store = arrayAllocationSite.set(store, 0, integerDiv);
+            store = arrayAllocationSite.set(store, 1, mod);
+            return arrayAllocationSite.finish(store, 2);
         }
     }
 
@@ -128,9 +136,10 @@ public class GeneralDivModNode extends Node {
             bigIntegerResults[1] = SlowPathBigInteger.add(b, bigIntegerResults[1]);
         }
 
-        return new RubyArray(context.getCoreLibrary().getArrayClass(), new Object[]{
-                fixnumOrBignumQuotient.fixnumOrBignum(bigIntegerResults[0]),
-                fixnumOrBignumRemainder.fixnumOrBignum(bigIntegerResults[1])}, 2);
+        Object store = arrayAllocationSite.start(2);
+        store = arrayAllocationSite.set(store, 0, fixnumOrBignumQuotient.fixnumOrBignum(bigIntegerResults[0]));
+        store = arrayAllocationSite.set(store, 1, fixnumOrBignumRemainder.fixnumOrBignum(bigIntegerResults[1]));
+        return arrayAllocationSite.finish(store, 2);
     }
 
 }

@@ -57,7 +57,7 @@ public abstract class MatchDataNodes {
         public RubyArray toA(RubyMatchData matchData) {
             notDesignedForCompilation();
 
-            return RubyArray.fromObjects(getContext().getCoreLibrary().getArrayClass(), matchData.getValues());
+            return RubyArray.slowFromObjects(getContext().getCoreLibrary().getArrayClass(), matchData.getValues());
         }
 
     }
@@ -83,7 +83,7 @@ public abstract class MatchDataNodes {
                 indicies[n] = RubyFixnum.toInt(args[n]);
             }
 
-            return RubyArray.fromObjects(getContext().getCoreLibrary().getArrayClass(), matchData.valuesAt(indicies));
+            return RubyArray.slowFromObjects(getContext().getCoreLibrary().getArrayClass(), matchData.valuesAt(indicies));
         }
 
     }

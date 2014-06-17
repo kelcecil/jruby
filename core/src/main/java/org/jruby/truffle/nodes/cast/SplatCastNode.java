@@ -57,10 +57,10 @@ public abstract class SplatCastNode extends RubyNode {
         if (object == NilPlaceholder.INSTANCE) {
             switch (nilBehavior) {
                 case EMPTY_ARRAY:
-                    return new RubyArray(getContext().getCoreLibrary().getArrayClass());
+                    return RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
 
                 case ARRAY_WITH_NIL:
-                    return RubyArray.fromObject(getContext().getCoreLibrary().getArrayClass(), NilPlaceholder.INSTANCE);
+                    return RubyArray.slowFromObjects(getContext().getCoreLibrary().getArrayClass(), NilPlaceholder.INSTANCE);
 
                 default: {
                     CompilerAsserts.neverPartOfCompilation();
@@ -84,7 +84,7 @@ public abstract class SplatCastNode extends RubyNode {
                 }
             }
 
-            return RubyArray.fromObject(getContext().getCoreLibrary().getArrayClass(), object);
+            return RubyArray.slowFromObject(getContext().getCoreLibrary().getArrayClass(), object);
         }
     }
 

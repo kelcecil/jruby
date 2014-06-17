@@ -42,6 +42,8 @@ public abstract class DirNodes {
 
         @SlowPath
         private static RubyArray glob(final RubyContext context, String glob) {
+            notDesignedForCompilation();
+
             /*
              * Globbing is quite complicated. We've implemented a subset of the functionality that
              * satisfies MSpec, but it will likely break for anyone else.
@@ -72,7 +74,7 @@ public abstract class DirNodes {
 
             final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + absoluteGlob.substring(prefixLength));
 
-            final RubyArray array = new RubyArray(context.getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(context.getCoreLibrary().getArrayClass());
 
             try {
                 Files.walkFileTree(FileSystems.getDefault().getPath(prefix), new SimpleFileVisitor<Path>() {

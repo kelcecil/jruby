@@ -269,27 +269,27 @@ public abstract class StringNodes {
     @CoreMethod(names = "bytes", maxArgs = 0)
     public abstract static class BytesNode extends CoreMethodNode {
 
+        @Child protected ArrayAllocationSite arrayAllocationSite;
+
         public BytesNode(RubyContext context, SourceSection sourceSection) {
             super(context, sourceSection);
+            arrayAllocationSite = new ArrayAllocationSite.UninitializedArrayAllocationSite(context);
         }
 
         public BytesNode(BytesNode prev) {
             super(prev);
+            arrayAllocationSite = prev.arrayAllocationSite;
         }
 
         @Specialization
         public RubyArray chomp(RubyString string) {
             notDesignedForCompilation();
 
-            final byte[] bytes = string.getBytes().bytes();
+            final int length = string.getBytes().length();
 
-            final int[] ints = new int[bytes.length];
-
-            for (int n = 0; n < ints.length; n++) {
-                ints[n] = RubyFixnum.toUnsignedInt(bytes[n]);
-            }
-
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass(), ints, bytes.length);
+            Object store = arrayAllocationSite.start(length);
+            arrayAllocationSite.setAll(store, 0, string.getBytes().unsafeBytes(), length);
+            return arrayAllocationSite.finish(store, length);
         }
     }
 
@@ -665,7 +665,7 @@ public abstract class StringNodes {
         public RubyArray scan(RubyString string, RubyRegexp regexp) {
             notDesignedForCompilation();
 
-            return RubyArray.fromObjects(getContext().getCoreLibrary().getArrayClass(), (Object[]) regexp.scan(string));
+            return RubyArray.slowFromObjects(getContext().getCoreLibrary().getArrayClass(), (Object[]) regexp.scan(string));
         }
 
     }
@@ -731,14 +731,14 @@ public abstract class StringNodes {
                 objects[n] = getContext().makeString(components[n]);
             }
 
-            return RubyArray.fromObjects(getContext().getCoreLibrary().getArrayClass(), objects);
+            return RubyArray.slowFromObjects(getContext().getCoreLibrary().getArrayClass(), objects);
         }
 
         @Specialization
         public RubyArray split(RubyString string, RubyRegexp sep) {
             notDesignedForCompilation();
 
-            return RubyArray.fromObjects(getContext().getCoreLibrary().getArrayClass(), (Object[]) sep.split(string.toString()));
+            return RubyArray.slowFromObjects(getContext().getCoreLibrary().getArrayClass(), (Object[]) sep.split(string.toString()));
         }
     }
 
@@ -909,7 +909,7 @@ public abstract class StringNodes {
             notDesignedForCompilation();
 
             final org.jruby.RubyArray jrubyArray = Pack.unpack(getContext().getRuntime(), string.getBytes(), format.getBytes());
-            return RubyArray.fromObjects(getContext().getCoreLibrary().getArrayClass(), jrubyArray.toArray());
+            return RubyArray.slowFromObjects(getContext().getCoreLibrary().getArrayClass(), jrubyArray.toArray());
         }
 
     }

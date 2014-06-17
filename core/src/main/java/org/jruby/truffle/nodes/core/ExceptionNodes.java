@@ -62,7 +62,7 @@ public abstract class ExceptionNodes {
         public RubyArray backtrace() {
             notDesignedForCompilation();
 
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            return RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
         }
 
     }

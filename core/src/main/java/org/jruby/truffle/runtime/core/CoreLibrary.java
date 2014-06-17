@@ -179,7 +179,7 @@ public class CoreLibrary {
         objectClass.setConstant("RUBY_ENGINE", RubyString.fromJavaString(stringClass, "rubytruffle"));
         objectClass.setConstant("RUBY_PLATFORM", RubyString.fromJavaString(stringClass, "jvm"));
 
-        argv = new RubyArray(arrayClass);
+        argv = RubyArray.slowNewArray(arrayClass);
         objectClass.setConstant("ARGV", argv);
         objectClass.setConstant("ENV", getEnv());
         objectClass.setConstant("TRUE", true);
@@ -283,8 +283,8 @@ public class CoreLibrary {
 
         globalVariablesObject = new RubyBasicObject(objectClass);
         globalVariablesObject.switchToPrivateLayout();
-        globalVariablesObject.setInstanceVariable("$LOAD_PATH", new RubyArray(arrayClass));
-        globalVariablesObject.setInstanceVariable("$LOADED_FEATURES", new RubyArray(arrayClass));
+        globalVariablesObject.setInstanceVariable("$LOAD_PATH", RubyArray.slowNewArray(arrayClass));
+        globalVariablesObject.setInstanceVariable("$LOADED_FEATURES", RubyArray.slowNewArray(arrayClass));
         globalVariablesObject.setInstanceVariable("$:", globalVariablesObject.getInstanceVariable("$LOAD_PATH"));
         globalVariablesObject.setInstanceVariable("$\"", globalVariablesObject.getInstanceVariable("$LOADED_FEATURES"));
 

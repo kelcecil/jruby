@@ -32,7 +32,7 @@ public final class RubyArray extends RubyObject {
 
         @Override
         public RubyBasicObject newInstance() {
-            return new RubyArray(this);
+            return new RubyArray(this, null, 0);
         }
 
     }
@@ -40,11 +40,29 @@ public final class RubyArray extends RubyObject {
     private Object store;
     private int size;
 
-    public RubyArray(RubyClass arrayClass) {
+    public static RubyArray slowNewArray(RubyClass arrayClass) {
+        RubyNode.notDesignedForCompilation();
+        return new RubyArray(arrayClass);
+    }
+
+    public static RubyArray slowNewArray(RubyClass arrayClass, Object store, int size) {
+        RubyNode.notDesignedForCompilation();
+        return new RubyArray(arrayClass, store, size);
+    }
+
+    public static RubyArray unsafeNewArray(RubyClass arrayClass) {
+        return new RubyArray(arrayClass);
+    }
+
+    public static RubyArray unsafeNewArray(RubyClass arrayClass, Object store, int size) {
+        return new RubyArray(arrayClass, store, size);
+    }
+
+    private RubyArray(RubyClass arrayClass) {
         this(arrayClass, null, 0);
     }
 
-    public RubyArray(RubyClass arrayClass, Object store, int size) {
+    private RubyArray(RubyClass arrayClass, Object store, int size) {
         super(arrayClass);
 
         assert store == null
@@ -65,7 +83,7 @@ public final class RubyArray extends RubyObject {
         this.size = size;
     }
 
-    public static RubyArray fromObject(RubyClass arrayClass, Object object) {
+    public static RubyArray slowFromObject(RubyClass arrayClass, Object object) {
         RubyNode.notDesignedForCompilation();
 
         final Object store;
@@ -89,7 +107,7 @@ public final class RubyArray extends RubyObject {
         return new RubyArray(arrayClass, store, 1);
     }
 
-    public static RubyArray fromObjects(RubyClass arrayClass, Object... objects) {
+    public static RubyArray slowFromObjects(RubyClass arrayClass, Object... objects) {
         RubyNode.notDesignedForCompilation();
 
         if (objects.length == 0) {
@@ -97,7 +115,7 @@ public final class RubyArray extends RubyObject {
         }
 
         if (objects.length == 1) {
-            return fromObject(arrayClass, objects[0]);
+            return slowFromObject(arrayClass, objects[0]);
         }
 
         boolean canUseInteger = Options.TRUFFLE_ARRAYS_INT.load();

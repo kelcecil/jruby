@@ -18,21 +18,23 @@ import org.jruby.truffle.nodes.RubyNode;
 import org.jruby.truffle.runtime.RubyContext;
 import org.jruby.truffle.runtime.core.RubyArray;
 
-import java.util.Arrays;
-
 @NodeInfo(shortName = "array-tail")
 @NodeChildren({@NodeChild(value = "array", type = RubyNode.class)})
 public abstract class ArrayGetTailNode extends RubyNode {
+
+    @Child protected ArrayAllocationSite arrayAllocationSite;
 
     final int index;
 
     public ArrayGetTailNode(RubyContext context, SourceSection sourceSection, int index) {
         super(context, sourceSection);
+        arrayAllocationSite = new ArrayAllocationSite.UninitializedArrayAllocationSite(context);
         this.index = index;
     }
 
     public ArrayGetTailNode(ArrayGetTailNode prev) {
         super(prev);
+        arrayAllocationSite = prev.arrayAllocationSite;
         index = prev.index;
     }
 
@@ -40,7 +42,7 @@ public abstract class ArrayGetTailNode extends RubyNode {
     public RubyArray getTailNull(RubyArray array) {
         notDesignedForCompilation();
 
-        return new RubyArray(getContext().getCoreLibrary().getArrayClass());
+        return arrayAllocationSite.empty();
     }
 
     @Specialization(guards = "isIntegerFixnum", order = 2)
@@ -48,9 +50,12 @@ public abstract class ArrayGetTailNode extends RubyNode {
         notDesignedForCompilation();
 
         if (index >= array.getSize()) {
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            return arrayAllocationSite.empty();
         } else {
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass(), Arrays.copyOfRange((int[]) array.getStore(), index, array.getSize()), array.getSize() - index);
+            final int length = array.getSize() - index;
+            Object store = arrayAllocationSite.start(length);
+            store = arrayAllocationSite.setAll(store, 0, (int[]) array.getStore(), index, length);
+            return arrayAllocationSite.finish(store, length);
         }
     }
 
@@ -59,9 +64,12 @@ public abstract class ArrayGetTailNode extends RubyNode {
         notDesignedForCompilation();
 
         if (index >= array.getSize()) {
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            return arrayAllocationSite.empty();
         } else {
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass(), Arrays.copyOfRange((long[]) array.getStore(), index, array.getSize()), array.getSize() - index);
+            final int length = array.getSize() - index;
+            Object store = arrayAllocationSite.start(length);
+            store = arrayAllocationSite.setAll(store, 0, (long[]) array.getStore(), index, length);
+            return arrayAllocationSite.finish(store, length);
         }
     }
 
@@ -70,9 +78,12 @@ public abstract class ArrayGetTailNode extends RubyNode {
         notDesignedForCompilation();
 
         if (index >= array.getSize()) {
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            return arrayAllocationSite.empty();
         } else {
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass(), Arrays.copyOfRange((double[]) array.getStore(), index, array.getSize()), array.getSize() - index);
+            final int length = array.getSize() - index;
+            Object store = arrayAllocationSite.start(length);
+            store = arrayAllocationSite.setAll(store, 0, (double[]) array.getStore(), index, length);
+            return arrayAllocationSite.finish(store, length);
         }
     }
 
@@ -81,9 +92,12 @@ public abstract class ArrayGetTailNode extends RubyNode {
         notDesignedForCompilation();
 
         if (index >= array.getSize()) {
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            return arrayAllocationSite.empty();
         } else {
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass(), Arrays.copyOfRange((Object[]) array.getStore(), index, array.getSize()), array.getSize() - index);
+            final int length = array.getSize() - index;
+            Object store = arrayAllocationSite.start(length);
+            store = arrayAllocationSite.setAll(store, 0, (Object[]) array.getStore(), index, length);
+            return arrayAllocationSite.finish(store, length);
         }
     }
 
@@ -109,44 +123,5 @@ public abstract class ArrayGetTailNode extends RubyNode {
         return array.getStore() instanceof Object[];
     }
 
-    protected boolean isOtherNull(RubyArray array, RubyArray other) {
-        return other.getStore() == null;
-    }
-
-    protected boolean isOtherIntegerFixnum(RubyArray array, RubyArray other) {
-        return other.getStore() instanceof int[];
-    }
-
-    protected boolean isOtherLongFixnum(RubyArray array, RubyArray other) {
-        return other.getStore() instanceof long[];
-    }
-
-    protected boolean isOtherFloat(RubyArray array, RubyArray other) {
-        return other.getStore() instanceof double[];
-    }
-
-    protected boolean isOtherObject(RubyArray array, RubyArray other) {
-        return other.getStore() instanceof Object[];
-    }
-
-    protected boolean areBothNull(RubyArray a, RubyArray b) {
-        return a.getStore() == null && b.getStore() == null;
-    }
-
-    protected boolean areBothIntegerFixnum(RubyArray a, RubyArray b) {
-        return a.getStore() instanceof int[] && b.getStore() instanceof int[];
-    }
-
-    protected boolean areBothLongFixnum(RubyArray a, RubyArray b) {
-        return a.getStore() instanceof long[] && b.getStore() instanceof long[];
-    }
-
-    protected boolean areBothFloat(RubyArray a, RubyArray b) {
-        return a.getStore() instanceof double[] && b.getStore() instanceof double[];
-    }
-
-    protected boolean areBothObject(RubyArray a, RubyArray b) {
-        return a.getStore() instanceof Object[] && b.getStore() instanceof Object[];
-    }
 
 }

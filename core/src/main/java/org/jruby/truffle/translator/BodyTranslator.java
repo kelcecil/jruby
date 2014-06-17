@@ -30,7 +30,6 @@ import org.jruby.truffle.nodes.core.*;
 import org.jruby.truffle.nodes.debug.TraceNode;
 import org.jruby.truffle.nodes.globals.CheckMatchVariableTypeNode;
 import org.jruby.truffle.nodes.literal.*;
-import org.jruby.truffle.nodes.literal.array.UninitialisedArrayLiteralNode;
 import org.jruby.truffle.nodes.methods.AddMethodNode;
 import org.jruby.truffle.nodes.methods.AliasNode;
 import org.jruby.truffle.nodes.methods.MethodDefinitionNode;
@@ -41,7 +40,6 @@ import org.jruby.truffle.nodes.yield.YieldNode;
 import org.jruby.truffle.runtime.RubyContext;
 import org.jruby.truffle.runtime.core.RubyFixnum;
 import org.jruby.truffle.runtime.core.RubyRegexp;
-import org.jruby.truffle.runtime.core.RubyRange;
 import org.jruby.truffle.runtime.methods.SharedMethodInfo;
 import org.jruby.util.ByteList;
 import org.jruby.util.cli.Options;
@@ -195,7 +193,7 @@ public class BodyTranslator extends Translator {
             translatedValues[n] = values.get(n).accept(this);
         }
 
-        return new UninitialisedArrayLiteralNode(context, translate(node.getPosition()), translatedValues);
+        return new ArrayLiteralNode(context, translate(node.getPosition()), translatedValues);
     }
 
     @Override
@@ -1244,8 +1242,8 @@ public class BodyTranslator extends Translator {
          * a, b = c, d
          */
 
-        if (preArray != null && node.getPost() == null && node.getRest() == null && rhsTranslated instanceof UninitialisedArrayLiteralNode &&
-                ((UninitialisedArrayLiteralNode) rhsTranslated).getValues().length == preArray.size()) {
+        if (preArray != null && node.getPost() == null && node.getRest() == null && rhsTranslated instanceof ArrayLiteralNode &&
+                ((ArrayLiteralNode) rhsTranslated).getValues().length == preArray.size()) {
             /*
              * We can deal with this common case be rewriting as
              *
@@ -1261,7 +1259,7 @@ public class BodyTranslator extends Translator {
              * executed if it isn't actually demanded.
              */
 
-            final RubyNode[] rhsValues = ((UninitialisedArrayLiteralNode) rhsTranslated).getValues();
+            final RubyNode[] rhsValues = ((ArrayLiteralNode) rhsTranslated).getValues();
             final int assignedValuesCount = preArray.size();
 
             final RubyNode[] sequence = new RubyNode[assignedValuesCount * 2];
@@ -1282,7 +1280,7 @@ public class BodyTranslator extends Translator {
 
             final RubyNode blockNode = SequenceNode.sequence(context, sourceSection, sequence);
 
-            final UninitialisedArrayLiteralNode arrayNode = new UninitialisedArrayLiteralNode(context, sourceSection, tempValues);
+            final ArrayLiteralNode arrayNode = new ArrayLiteralNode(context, sourceSection, tempValues);
 
             final ElidableResultNode elidableResult = new ElidableResultNode(context, sourceSection, blockNode, arrayNode);
 
@@ -1929,7 +1927,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitZArrayNode(org.jruby.ast.ZArrayNode node) {
         final RubyNode[] values = new RubyNode[0];
 
-        return new UninitialisedArrayLiteralNode(context, translate(node.getPosition()), values);
+        return new ArrayLiteralNode(context, translate(node.getPosition()), values);
     }
 
     @Override

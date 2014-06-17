@@ -219,7 +219,7 @@ public abstract class HashNodes {
                         count++;
                     }
 
-                    yield(frame, block, RubyArray.fromObjects(getContext().getCoreLibrary().getArrayClass(), entry.getKey(), entry.getValue()));
+                    yield(frame, block, RubyArray.slowFromObjects(getContext().getCoreLibrary().getArrayClass(), entry.getKey(), entry.getValue()));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -267,10 +267,10 @@ public abstract class HashNodes {
         public RubyArray toArray(RubyHash hash) {
             notDesignedForCompilation();
 
-            final RubyArray array = new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
 
             for (Object key : hash.storage.keySet()) {
-                RubyArray subArray = new RubyArray(getContext().getCoreLibrary().getArrayClass());
+                RubyArray subArray = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
 
                 subArray.slowPush(key);
                 subArray.slowPush(hash.storage.get(key));
@@ -325,7 +325,7 @@ public abstract class HashNodes {
         public RubyArray map(VirtualFrame frame, RubyHash hash, RubyProc block) {
             notDesignedForCompilation();
 
-            final RubyArray result = new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            final RubyArray result = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
 
             int count = 0;
 
@@ -405,7 +405,7 @@ public abstract class HashNodes {
         public RubyArray keys(RubyHash hash) {
             notDesignedForCompilation();
 
-            final RubyArray array = new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
 
             for (Object key : hash.storage.keySet()) {
                 array.slowPush(key);
@@ -449,7 +449,7 @@ public abstract class HashNodes {
         public RubyArray values(RubyHash hash) {
             notDesignedForCompilation();
 
-            final RubyArray array = new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
 
             for (Object value : hash.storage.values()) {
                 array.slowPush(value);

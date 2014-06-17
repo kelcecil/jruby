@@ -128,10 +128,17 @@ public abstract class RegexpNodes {
         }
 
         @Specialization
-        public RubyString sqrt(RubyString pattern) {
+        public RubyString escape(RubyString pattern) {
             notDesignedForCompilation();
 
             return getContext().makeString(org.jruby.RubyRegexp.quote19(new ByteList(pattern.getBytes()), true).toString());
+        }
+
+        @Specialization
+        public RubyString escape(RubySymbol pattern) {
+            notDesignedForCompilation();
+
+            return getContext().makeString(org.jruby.RubyRegexp.quote19(new ByteList(pattern.toRubyString().getBytes()), true).toString());
         }
 
     }

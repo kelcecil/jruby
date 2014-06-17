@@ -310,7 +310,7 @@ public abstract class ModuleNodes {
             notDesignedForCompilation();
 
             getContext().getRuntime().getWarnings().warn(IRubyWarnings.ID.TRUFFLE, RubyCallStack.getCallerFrame().getCallNode().getEncapsulatingSourceSection().getSource().getName(), RubyCallStack.getCallerFrame().getCallNode().getEncapsulatingSourceSection().getStartLine(), "Module#constants returns an empty array");
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            return RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
         }
     }
 
@@ -660,7 +660,7 @@ public abstract class ModuleNodes {
         public RubyArray privateInstanceMethods(RubyModule module, boolean includeAncestors) {
             notDesignedForCompilation();
 
-            final RubyArray array = new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
             final List<RubyMethod> methods = module.getDeclaredMethods();
             if (includeAncestors) {
                 RubyModule parent = module.getParentModule();
@@ -701,7 +701,7 @@ public abstract class ModuleNodes {
         public RubyArray instanceMethods(RubyModule module, boolean includeAncestors) {
             notDesignedForCompilation();
 
-            final RubyArray array = new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
             final List<RubyMethod> methods = module.getDeclaredMethods();
             if (includeAncestors) {
                 RubyModule parent = module.getParentModule();

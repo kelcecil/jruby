@@ -7,44 +7,51 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.nodes.literal.array;
+package org.jruby.truffle.nodes.literal;
 
 import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import org.jruby.truffle.nodes.*;
+import org.jruby.truffle.nodes.core.ArrayAllocationSite;
 import org.jruby.truffle.runtime.*;
 import org.jruby.truffle.runtime.core.RubyArray;
 
-public abstract class ArrayLiteralNode extends RubyNode {
+public class ArrayLiteralNode extends RubyNode {
 
     @Children protected final RubyNode[] values;
+    @Child protected ArrayAllocationSite arrayAllocationSite;
 
     public ArrayLiteralNode(RubyContext context, SourceSection sourceSection, RubyNode[] values) {
         super(context, sourceSection);
         this.values = values;
+        arrayAllocationSite = new ArrayAllocationSite.UninitializedArrayAllocationSite(context);
     }
 
-    protected RubyArray makeGeneric(VirtualFrame frame, Object[] alreadyExecuted) {
-        CompilerAsserts.neverPartOfCompilation();
-
-        replace(new ObjectArrayLiteralNode(getContext(), getSourceSection(), values));
-
-        final Object[] executedValues = new Object[values.length];
+    @ExplodeLoop
+    @Override
+    public RubyArray executeArray(VirtualFrame frame) {
+        Object store = arrayAllocationSite.start(values.length);
 
         for (int n = 0; n < values.length; n++) {
-            if (n < alreadyExecuted.length) {
-                executedValues[n] = alreadyExecuted[n];
-            } else {
-                executedValues[n] = values[n].execute(frame);
+            try {
+                if (arrayAllocationSite.evaluateElementsAs() == Integer.class) {
+                    store = arrayAllocationSite.set(store, n, values[n].executeIntegerFixnum(frame));
+                } else if (arrayAllocationSite.evaluateElementsAs() == Long.class) {
+                    store = arrayAllocationSite.set(store, n, values[n].executeLongFixnum(frame));
+                } else if (arrayAllocationSite.evaluateElementsAs() == Double.class) {
+                    store = arrayAllocationSite.set(store, n, values[n].execute(frame));
+                } else {
+                    store = arrayAllocationSite.set(store, n, values[n].execute(frame));
+                }
+            } catch (UnexpectedResultException e) {
+                store = arrayAllocationSite.set(store, n, e.getResult());
             }
         }
 
-        return RubyArray.fromObjects(getContext().getCoreLibrary().getArrayClass(), executedValues);
+        return arrayAllocationSite.finish(store, values.length);
     }
-
-    @Override
-    public abstract RubyArray executeArray(VirtualFrame frame);
 
     @ExplodeLoop
     @Override

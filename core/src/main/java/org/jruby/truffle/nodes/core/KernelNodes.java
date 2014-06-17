@@ -54,7 +54,7 @@ public abstract class
             if (args.length == 1 && args[0] instanceof RubyArray) {
                 return (RubyArray) args[0];
             } else {
-                return RubyArray.fromObjects(getContext().getCoreLibrary().getArrayClass(), args);
+                return RubyArray.slowFromObjects(getContext().getCoreLibrary().getArrayClass(), args);
             }
         }
 

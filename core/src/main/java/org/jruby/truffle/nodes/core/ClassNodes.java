@@ -118,7 +118,7 @@ public abstract class ClassNodes {
         public RubyArray getClassVariables(RubyClass rubyClass) {
             notDesignedForCompilation();
 
-            final RubyArray array = new RubyArray(rubyClass.getContext().getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(rubyClass.getContext().getCoreLibrary().getArrayClass());
 
             for (String variable : rubyClass.getClassVariables()) {
                 array.slowPush(RubySymbol.newSymbol(rubyClass.getContext(), variable));

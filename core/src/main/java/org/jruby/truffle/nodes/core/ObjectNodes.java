@@ -437,7 +437,7 @@ public abstract class ObjectNodes {
 
             Arrays.sort(instanceVariableNames);
 
-            final RubyArray array = new RubyArray(getContext().getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
 
             for (String name : instanceVariableNames) {
                 array.slowPush(RubyString.fromJavaString(getContext().getCoreLibrary().getStringClass(), name));
@@ -500,7 +500,7 @@ public abstract class ObjectNodes {
         public RubyArray methods(RubyObject self, @SuppressWarnings("unused") UndefinedPlaceholder includeInherited) {
             notDesignedForCompilation();
 
-            final RubyArray array = new RubyArray(self.getRubyClass().getContext().getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
 
             final Map<String, RubyMethod> methods = new HashMap<>();
 
@@ -580,7 +580,7 @@ public abstract class ObjectNodes {
         public RubyArray methods(RubyObject self, @SuppressWarnings("unused") UndefinedPlaceholder includeInherited) {
             notDesignedForCompilation();
 
-            final RubyArray array = new RubyArray(self.getRubyClass().getContext().getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
 
             final Map<String, RubyMethod> methods = new HashMap<>();
 
@@ -721,7 +721,7 @@ public abstract class ObjectNodes {
         public RubyArray singletonMethods(RubyObject self, @SuppressWarnings("unused") UndefinedPlaceholder includeInherited) {
             notDesignedForCompilation();
 
-            final RubyArray array = new RubyArray(self.getRubyClass().getContext().getCoreLibrary().getArrayClass());
+            final RubyArray array = RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
 
             for (RubyMethod method : self.getSingletonClass().getDeclaredMethods()) {
                 array.slowPush(RubySymbol.newSymbol(self.getRubyClass().getContext(), method.getName()));

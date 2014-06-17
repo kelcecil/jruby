@@ -67,11 +67,11 @@ public abstract class RangeNodes {
     @CoreMethod(names = {"collect", "map"}, needsBlock = true, maxArgs = 0, lowerFixnumSelf = true)
     public abstract static class CollectNode extends YieldingCoreMethodNode {
 
-        @Child protected ArrayBuilderNode arrayBuilder;
+        @Child protected ArrayAllocationSite arrayBuilder;
 
         public CollectNode(RubyContext context, SourceSection sourceSection) {
             super(context, sourceSection);
-            arrayBuilder = new ArrayBuilderNode.UninitializedArrayBuilderNode(context, true);
+            arrayBuilder = new ArrayAllocationSite.UninitializedArrayAllocationSite(context);
         }
 
         public CollectNode(CollectNode prev) {
@@ -85,7 +85,7 @@ public abstract class RangeNodes {
             final int exclusiveEnd = range.getExclusiveEnd();
             final int length = exclusiveEnd - begin;
 
-            Object store = arrayBuilder.length(length);
+            Object store = arrayBuilder.start(length);
 
             int count = 0;
 
@@ -95,7 +95,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    store = arrayBuilder.append(store, n, yield(frame, block, n));
+                    store = arrayBuilder.set(store, n, yield(frame, block, n));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -103,7 +103,7 @@ public abstract class RangeNodes {
                 }
             }
 
-            return new RubyArray(getContext().getCoreLibrary().getArrayClass(), arrayBuilder.finish(store), length);
+            return arrayBuilder.finish(store, length);
         }
 
     }
@@ -345,7 +345,7 @@ public abstract class RangeNodes {
             final int length = range.getExclusiveEnd() - begin;
 
             if (length < 0) {
-                return new RubyArray(getContext().getCoreLibrary().getArrayClass());
+                return RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
             } else {
                 final int[] values = new int[length];
 
@@ -353,7 +353,7 @@ public abstract class RangeNodes {
                     values[n] = begin + n;
                 }
 
-                return new RubyArray(getContext().getCoreLibrary().getArrayClass(), values, length);
+                return RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass(), values, length);
             }
         }
 
