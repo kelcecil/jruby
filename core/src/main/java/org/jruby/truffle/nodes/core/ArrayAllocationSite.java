@@ -128,6 +128,7 @@ public abstract class ArrayAllocationSite extends Node {
         @Override
         public Object start(int expectedLength) {
             CompilerDirectives.transferToInterpreter();
+            System.err.println("transfer");
 
             return new Object[expectedLength];
         }
@@ -135,6 +136,7 @@ public abstract class ArrayAllocationSite extends Node {
         @Override
         public Object set(Object store, int index, Object value) {
             CompilerDirectives.transferToInterpreter();
+            System.err.println("transfer");
 
             if (value instanceof Integer) {
                 couldUseDouble = false;
@@ -157,6 +159,7 @@ public abstract class ArrayAllocationSite extends Node {
         @Override
         public Object setAll(Object store, int index, byte[] values, int start, int length) {
             CompilerDirectives.transferToInterpreter();
+            System.err.println("transfer");
 
             couldUseDouble = false;
 
@@ -170,6 +173,7 @@ public abstract class ArrayAllocationSite extends Node {
         @Override
         public Object setAll(Object store, int index, int[] values, int start, int length) {
             CompilerDirectives.transferToInterpreter();
+            System.err.println("transfer");
 
             couldUseDouble = false;
 
@@ -183,6 +187,7 @@ public abstract class ArrayAllocationSite extends Node {
         @Override
         public Object setAll(Object store, int index, long[] values, int start, int length) {
             CompilerDirectives.transferToInterpreter();
+            System.err.println("transfer");
 
             couldUseDouble = false;
 
@@ -197,6 +202,7 @@ public abstract class ArrayAllocationSite extends Node {
         @Override
         public Object setAll(Object store, int index, double[] values, int start, int length) {
             CompilerDirectives.transferToInterpreter();
+            System.err.println("transfer");
 
             couldUseInteger = false;
             couldUseLong = false;
@@ -211,6 +217,7 @@ public abstract class ArrayAllocationSite extends Node {
         @Override
         public Object setAll(Object store, int index, Object[] values, int start, int length) {
             CompilerDirectives.transferToInterpreter();
+            System.err.println("transfer");
 
             for (int n = 0; n < length; n++) {
                 final Object value = values[start + n];
@@ -241,6 +248,7 @@ public abstract class ArrayAllocationSite extends Node {
         @Override
         public Object finishStore(Object store) {
             CompilerDirectives.transferToInterpreter();
+            System.err.println("transfer");
 
             if (couldUseInteger) {
                 replace(new IntegerArrayAllocationSite(context));
@@ -272,15 +280,11 @@ public abstract class ArrayAllocationSite extends Node {
 
         @Override
         public Object start(int expectedLength) {
-            RubyNode.notDesignedForCompilation();
-
             return new int[expectedLength];
         }
 
         @Override
         public Object set(Object store, int index, Object value) {
-            RubyNode.notDesignedForCompilation();
-
             if (value instanceof Integer) {
                 return set(store, index, (int) value);
             } else if (value instanceof Long && RubyFixnum.fitsIntoInteger((long) value)) {
@@ -298,16 +302,12 @@ public abstract class ArrayAllocationSite extends Node {
 
         @Override
         public Object set(Object store, int index, int value) {
-            RubyNode.notDesignedForCompilation();
-
             ((int[]) store)[index] = value;
             return store;
         }
 
         @Override
         public Object set(Object store, int index, long value) {
-            RubyNode.notDesignedForCompilation();
-
             if (RubyFixnum.fitsIntoInteger(value)) {
                 ((int[]) store)[index] = (int) value;
                 return store;
@@ -318,8 +318,6 @@ public abstract class ArrayAllocationSite extends Node {
 
         @Override
         public Object setAll(Object store, int index, byte[] values, int start, int length) {
-            RubyNode.notDesignedForCompilation();
-
             for (int n = 0; n < length; n++) {
                 ((int[]) store)[index + n] = values[start + n];
             }
@@ -329,16 +327,12 @@ public abstract class ArrayAllocationSite extends Node {
 
         @Override
         public Object setAll(Object store, int index, int[] values, int start, int length) {
-            RubyNode.notDesignedForCompilation();
-
             System.arraycopy(values, start, store, index, length);
             return store;
         }
 
         @Override
         public Object setAll(Object store, int index, long[] values, int start, int length) {
-            RubyNode.notDesignedForCompilation();
-
             final int[] intStore = (int[]) store;
 
             for (int n = 0; n < length; n++) {
@@ -361,8 +355,6 @@ public abstract class ArrayAllocationSite extends Node {
 
         @Override
         public Object setAll(Object store, int index, Object[] values, int start, int length) {
-            RubyNode.notDesignedForCompilation();
-
             final int[] intStore = (int[]) store;
 
             for (int n = 0; n < length; n++) {
@@ -374,6 +366,7 @@ public abstract class ArrayAllocationSite extends Node {
                     intStore[index + n] = (int) (long) value;
                 } else {
                     CompilerDirectives.transferToInterpreter();
+                    System.err.println("transfer");
 
                     final Object[] objectStore = new Object[intStore.length];
 
@@ -616,23 +609,17 @@ public abstract class ArrayAllocationSite extends Node {
 
         @Override
         public Object start(int expectedLength) {
-            RubyNode.notDesignedForCompilation();
-
             return new Object[expectedLength];
         }
 
         @Override
         public Object set(Object store, int index, Object value) {
-            RubyNode.notDesignedForCompilation();
-
             ((Object[]) store)[index] = value;
             return store;
         }
 
         @Override
         public Object setAll(Object store, int index, byte[] values, int start, int length) {
-            RubyNode.notDesignedForCompilation();
-
             for (int n = 0; n < length; n++) {
                 ((Object[]) store)[index + n] = values[start + n];
             }
@@ -642,8 +629,6 @@ public abstract class ArrayAllocationSite extends Node {
 
         @Override
         public Object setAll(Object store, int index, int[] values, int start, int length) {
-            RubyNode.notDesignedForCompilation();
-
             final Object[] objectStore = (Object[]) store;
 
             for (int n = 0; n < length; n++) {
@@ -655,8 +640,6 @@ public abstract class ArrayAllocationSite extends Node {
 
         @Override
         public Object setAll(Object store, int index, long[] values, int start, int length) {
-            RubyNode.notDesignedForCompilation();
-
             final Object[] objectStore = (Object[]) store;
 
             for (int n = 0; n < length; n++) {
@@ -668,8 +651,6 @@ public abstract class ArrayAllocationSite extends Node {
 
         @Override
         public Object setAll(Object store, int index, double[] values, int start, int length) {
-            RubyNode.notDesignedForCompilation();
-
             final Object[] objectStore = (Object[]) store;
 
             for (int n = 0; n < length; n++) {
@@ -681,8 +662,6 @@ public abstract class ArrayAllocationSite extends Node {
 
         @Override
         public Object setAll(Object store, int index, Object[] values, int start, int length) {
-            RubyNode.notDesignedForCompilation();
-
             final Object[] objectStore = (Object[]) store;
 
             for (int n = 0; n < length; n++) {

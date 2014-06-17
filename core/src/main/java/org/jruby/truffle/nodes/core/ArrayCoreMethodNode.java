@@ -84,6 +84,10 @@ public abstract class ArrayCoreMethodNode extends CoreMethodNode {
         return a.getStore() instanceof Object[] && b.getStore() instanceof Object[];
     }
 
+    protected boolean isThirdIntegerFixnum(Object first, Object second, RubyArray third) {
+        return third.getStore() instanceof int[];
+    }
+
     protected boolean areIntArraysEnabled() {
         return Options.TRUFFLE_ARRAYS_INT.load();
     }

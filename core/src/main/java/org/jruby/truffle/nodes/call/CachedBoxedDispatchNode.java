@@ -13,6 +13,7 @@ import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 import org.jruby.truffle.nodes.RubyNode;
+import org.jruby.truffle.nodes.core.ArrayAllocationSite;
 import org.jruby.truffle.runtime.*;
 import org.jruby.truffle.runtime.core.*;
 import org.jruby.truffle.runtime.lookup.*;
@@ -45,6 +46,10 @@ public class CachedBoxedDispatchNode extends BoxedDispatchNode {
         this.next = next;
 
         callNode = Truffle.getRuntime().createDirectCallNode(method.getCallTarget());
+
+        if (method.getCallTarget() instanceof RootCallTarget && !NodeUtil.findAllNodeInstances(((RootCallTarget) method.getCallTarget()).getRootNode(), ArrayAllocationSite.class).isEmpty()) {
+            callNode.split();
+        }
     }
 
     @Override

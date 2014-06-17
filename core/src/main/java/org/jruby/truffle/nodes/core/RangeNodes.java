@@ -331,12 +331,16 @@ public abstract class RangeNodes {
     @CoreMethod(names = "to_a", maxArgs = 0, lowerFixnumSelf = true)
     public abstract static class ToANode extends CoreMethodNode {
 
+        @Child protected ArrayAllocationSite arrayAllocationSite;
+
         public ToANode(RubyContext context, SourceSection sourceSection) {
             super(context, sourceSection);
+            arrayAllocationSite = new ArrayAllocationSite.UninitializedArrayAllocationSite(context);
         }
 
         public ToANode(ToANode prev) {
             super(prev);
+            arrayAllocationSite = prev.arrayAllocationSite;
         }
 
         @Specialization
@@ -345,15 +349,15 @@ public abstract class RangeNodes {
             final int length = range.getExclusiveEnd() - begin;
 
             if (length < 0) {
-                return RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass());
+                return arrayAllocationSite.empty();
             } else {
-                final int[] values = new int[length];
+                Object store = arrayAllocationSite.start(length);
 
                 for (int n = 0; n < length; n++) {
-                    values[n] = begin + n;
+                    store = arrayAllocationSite.set(store, n, begin + n);
                 }
 
-                return RubyArray.slowNewArray(getContext().getCoreLibrary().getArrayClass(), values, length);
+                return arrayAllocationSite.finish(store, length);
             }
         }
 

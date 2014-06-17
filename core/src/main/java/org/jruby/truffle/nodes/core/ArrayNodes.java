@@ -771,74 +771,24 @@ public abstract class ArrayNodes {
             return value;
         }
 
-        @Specialization(guards = "isIntegerFixnum", order = 7)
+        @Specialization(guards = {"isIntegerFixnum", "isThirdIntegerFixnum"}, order = 7)
         public RubyArray setIntegerFixnumRange(RubyArray array, RubyRange.IntegerFixnumRange range, RubyArray other, UndefinedPlaceholder unused) {
-            // TODO(CS): why can't this be a guard?
-            if (other.getStore() instanceof int[]) {
-                if (range.doesExcludeEnd()) {
-                    CompilerDirectives.transferToInterpreter();
-                    throw new UnsupportedOperationException();
-                } else {
-                    int normalisedBegin = array.normaliseIndex(range.getBegin());
-                    int normalisedEnd = array.normaliseIndex(range.getEnd());
-
-                    if (normalisedBegin == 0 && normalisedEnd == array.getSize() - 1) {
-                        array.setStore(Arrays.copyOf((int[]) other.getStore(), other.getSize()), other.getSize());
-                    } else {
-                        panic();
-                        throw new RuntimeException();
-                    }
-                }
+            if (range.doesExcludeEnd()) {
+                CompilerDirectives.transferToInterpreter();
+                throw new UnsupportedOperationException();
             } else {
-                panic(other.getStore());
-                throw new RuntimeException();
+                int normalisedBegin = array.normaliseIndex(range.getBegin());
+                int normalisedEnd = array.normaliseIndex(range.getEnd());
+
+                if (normalisedBegin == 0 && normalisedEnd == array.getSize() - 1) {
+                    array.setStore(Arrays.copyOf((int[]) other.getStore(), other.getSize()), other.getSize());
+                } else {
+                    panic();
+                    throw new RuntimeException();
+                }
             }
 
             return other;
-        }
-
-        @Specialization(order = 8)
-        public Object setUnexpected(RubyArray array, int index, Object value, UndefinedPlaceholder unused) {
-            notDesignedForCompilation();
-
-            if (array.getStore() instanceof int[] && value instanceof Integer) {
-                return setIntegerFixnum(array, index, (int) value, unused);
-            }
-
-            // Just convert to object for now
-
-            if (!(array.getStore() instanceof Object[])) {
-                array.setStore(array.slowToArray(), array.getSize());
-            }
-
-            final int normalisedIndex = array.normaliseIndex(index);
-            Object[] store = (Object[]) array.getStore();
-
-            if (normalisedIndex < 0) {
-                tooSmallBranch.enter();
-                throw new UnsupportedOperationException();
-            } else if (normalisedIndex >= array.getSize()) {
-                pastEndBranch.enter();
-
-                if (normalisedIndex == array.getSize()) {
-                    appendBranch.enter();
-
-                    if (normalisedIndex >= store.length) {
-                        reallocateBranch.enter();
-                        array.setStore(store = Arrays.copyOf(store, ArrayUtils.capacity(store.length, normalisedIndex + 1)), array.getSize());
-                    }
-
-                    store[normalisedIndex] = value;
-                    array.setSize(array.getSize() + 1);
-                } else if (normalisedIndex > array.getSize()) {
-                    beyondBranch.enter();
-                    throw new UnsupportedOperationException();
-                }
-            } else {
-                store[normalisedIndex] = value;
-            }
-
-            return value;
         }
 
     }
@@ -1272,8 +1222,6 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "isIntegerFixnum", order = 2)
         public Object dupIntegerFixnum(RubyArray array) {
-            notDesignedForCompilation();
-
             final int size = array.getSize();
             Object store = arrayAllocationSite.start(size);
             arrayAllocationSite.setAll(store, 0, (int[]) array.getStore(), size);
@@ -1282,8 +1230,6 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "isLongFixnum", order = 3)
         public Object dupLongFixnum(RubyArray array) {
-            notDesignedForCompilation();
-
             final int size = array.getSize();
             Object store = arrayAllocationSite.start(size);
             arrayAllocationSite.setAll(store, 0, (long[]) array.getStore(), size);
@@ -1292,8 +1238,6 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "isFloat", order = 4)
         public Object dupFloat(RubyArray array) {
-            notDesignedForCompilation();
-
             final int size = array.getSize();
             Object store = arrayAllocationSite.start(size);
             arrayAllocationSite.setAll(store, 0, (double[]) array.getStore(), size);
@@ -1302,8 +1246,6 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "isObject", order = 5)
         public Object dupObject(RubyArray array) {
-            notDesignedForCompilation();
-
             final int size = array.getSize();
             Object store = arrayAllocationSite.start(size);
             arrayAllocationSite.setAll(store, 0, (Object[]) array.getStore(), size);

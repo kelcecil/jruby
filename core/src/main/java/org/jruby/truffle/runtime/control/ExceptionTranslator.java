@@ -57,6 +57,13 @@ public final class ExceptionTranslator {
                     builder.append(((RubyBasicObject) value).getRubyClass().getName());
                     builder.append(" (");
                     builder.append(value.getClass().getName());
+
+                    if (value instanceof RubyArray) {
+                        builder.append("[");
+                        builder.append(((RubyArray) value).getStore().getClass());
+                        builder.append("]");
+                    }
+
                     builder.append(")");
                 } else {
                     builder.append(value.getClass().getName());
