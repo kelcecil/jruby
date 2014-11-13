@@ -27,17 +27,13 @@
  ***** END LICENSE BLOCK *****/
 package org.jruby.util;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
 import jnr.posix.POSIX;
 import org.jruby.RubyEncoding;
-import org.jruby.RubyFile;
-
 import org.jruby.platform.Platform;
-import java.io.IOException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This class exists as a counterpart to the dir.c file in 
@@ -583,12 +579,16 @@ public class Dir {
         FileResource file = JRubyFile.createResource(posix, cwd, fileName);
 
         if (file.exists()) {
-            boolean trailingSlash = bytes[end - 1] == '/';
+                int index = file.canonicalPath().toLowerCase().indexOf(fileName.toLowerCase());
+                String canonicalName = file.canonicalPath().substring(index, index + (end - begin));
+                bytes = canonicalName.getBytes();
 
-            // On case-insenstive file systems any case string will 'exists',
-            // but what does it display as if you ls/dir it?
+                boolean trailingSlash = bytes[end - 1] == '/';
+
+                // On case-insenstive file systems any case string will 'exists',
+                // but what does it display as if you ls/dir it?
             /* No idea what this is doing =/
-             
+
               if ((flags & FNM_CASEFOLD) != 0 && !isSpecialFile(fileName)) {
                 try {
                     String realName = file.getCanonicalFile().getName();
@@ -609,9 +609,9 @@ public class Dir {
                     end = bytes.length;
                 } catch (Exception e) {} // Failure will just use what we pass in
             }*/
-            
-            return func.call(bytes, begin, end - begin, arg);
-        }
+
+                return func.call(bytes, begin, end - begin, arg);
+            }
 
         return 0;
     }
